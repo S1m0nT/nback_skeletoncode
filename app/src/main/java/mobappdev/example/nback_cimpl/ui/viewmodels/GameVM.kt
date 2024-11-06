@@ -97,6 +97,17 @@ class GameVM(
          * Todo: This function should check if there is a match when the user presses a match button
          * Make sure the user can only register a match once for each event.
          */
+        val currentIndex = _gameState.value.eventValue
+        if (currentIndex >= nBack && currentIndex < events.size) {
+            val isMatch = events[currentIndex] == events[currentIndex - nBack]
+
+            if (isMatch) {
+                _score.value += 1
+                Log.d("GameVM", "Match found! Score updated: ${_score.value}")
+            } else {
+                Log.d("GameVM", "No match found.")
+            }
+        }
     }
     private fun runAudioGame() {
         // Todo: Make work for Basic grade
@@ -144,7 +155,8 @@ enum class GameType{
 data class GameState(
     // You can use this state to push values from the VM to your UI.
     val gameType: GameType = GameType.Visual,  // Type of the game
-    val eventValue: Int = -1  // The value of the array string
+    val eventValue: Int = -1,  // The value of the array string
+    val indexValue: Int = 0
 )
 
 class FakeVM: GameViewModel{

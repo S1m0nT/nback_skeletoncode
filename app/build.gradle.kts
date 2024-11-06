@@ -69,6 +69,9 @@ dependencies {
     // Navigation (2.4.0 because I target API 33)
     implementation("androidx.navigation:navigation-compose:2.4.0")
 
+    implementation("androidx.compose.foundation:foundation:1.3.0")
+
+
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 

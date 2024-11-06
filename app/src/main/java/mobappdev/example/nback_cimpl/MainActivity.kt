@@ -6,8 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import mobappdev.example.nback_cimpl.ui.screens.GameScreen
 import mobappdev.example.nback_cimpl.ui.screens.HomeScreen
 import mobappdev.example.nback_cimpl.ui.theme.NBack_CImplTheme
 import mobappdev.example.nback_cimpl.ui.viewmodels.GameVM
@@ -42,9 +47,23 @@ class MainActivity : ComponentActivity() {
                     )
 
                     // Instantiate the homescreen
-                    HomeScreen(vm = gameViewModel)
+                    MyApp(gameViewModel)
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun MyApp(vm: GameVM) {
+    val navController = rememberNavController()
+
+    NavHost(navController = navController, startDestination = "home") {
+        composable("home") {
+            HomeScreen(vm = vm, navController = navController)
+        }
+        composable("game") {
+            GameScreen(vm = vm)
         }
     }
 }

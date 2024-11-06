@@ -1,1 +1,1 @@
-/Users/yeetivity/AndroidStudioProjects/NBack_CImpl/app/src/main/cpp/CMakeLists.txt
+C:\Users\wedi_\StudioProjects\nback_skeletoncode\app\src\main\cpp\CMakeLists.txt

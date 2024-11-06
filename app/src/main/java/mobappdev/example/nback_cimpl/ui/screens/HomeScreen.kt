@@ -1,5 +1,6 @@
 package mobappdev.example.nback_cimpl.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,10 +27,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import mobappdev.example.nback_cimpl.R
 import mobappdev.example.nback_cimpl.ui.viewmodels.FakeVM
@@ -49,7 +54,8 @@ import mobappdev.example.nback_cimpl.ui.viewmodels.GameViewModel
 
 @Composable
 fun HomeScreen(
-    vm: GameViewModel
+    vm: GameViewModel,
+    navController : NavController
 ) {
     val highscore by vm.highscore.collectAsState()  // Highscore is its own StateFlow
     val gameState by vm.gameState.collectAsState()
@@ -62,6 +68,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color(0xFFB3E5FC))
                 .padding(it),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -69,11 +76,14 @@ fun HomeScreen(
             Text(
                 modifier = Modifier.padding(32.dp),
                 text = "High-Score = $highscore",
-                style = MaterialTheme.typography.headlineLarge
+                style = MaterialTheme.typography.headlineLarge,
+                color = Color.Black
             )
             // Todo: You'll probably want to change this "BOX" part of the composable
             Box(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
+                    .background(Color(0xFF81D4FA), shape = MaterialTheme.shapes.medium)
+                    .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -84,18 +94,29 @@ fun HomeScreen(
                         Text(
                             modifier = Modifier.fillMaxWidth(),
                             text = "Current eventValue is: ${gameState.eventValue}",
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            color = Color.Black
+
                         )
                     }
-                    Button(onClick = vm::startGame) {
-                        Text(text = "Generate eventValues")
+                    Button(onClick = {
+                        vm.startGame()
+                        navController.navigate("game")
+                    },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF0288D1)
+                        )
+                    ) {
+                        Text(text = "Play Game")
                     }
                 }
             }
             Text(
                 modifier = Modifier.padding(16.dp),
                 text = "Start Game".uppercase(),
-                style = MaterialTheme.typography.displaySmall
+                style = MaterialTheme.typography.displaySmall,
+                color = Color.Black
+
             )
             Row(
                 modifier = Modifier
@@ -129,7 +150,11 @@ fun HomeScreen(
                                 duration = SnackbarDuration.Short
                             )
                         }
-                    }) {
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF0288D1)
+                    )
+                    ) {
                     Icon(
                         painter = painterResource(id = R.drawable.visual),
                         contentDescription = "Visual",
@@ -146,8 +171,8 @@ fun HomeScreen(
 @Preview
 @Composable
 fun HomeScreenPreview() {
-    // Since I am injecting a VM into my homescreen that depends on Application context, the preview doesn't work.
-    Surface(){
-        HomeScreen(FakeVM())
+    val navController = rememberNavController()
+    Surface {
+        HomeScreen(FakeVM(), navController)
     }
 }
