@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import mobappdev.example.nback_cimpl.ui.viewmodels.FakeVM
 import mobappdev.example.nback_cimpl.ui.viewmodels.GameType
 import mobappdev.example.nback_cimpl.ui.viewmodels.GameViewModel
+import mobappdev.example.nback_cimpl.ui.viewmodels.MatchStatus
 
 @Composable
 fun GameScreen(
@@ -36,14 +37,6 @@ fun GameScreen(
     val score by vm.score.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(gameState.currentAudio) {
-        Log.d("GameScreen", "LaunchedEffect triggered with currentAudio: ${gameState.currentAudio}")
-        if (gameState.currentAudio?.isNotEmpty() == true) {
-            tts.speak(gameState.currentAudio, TextToSpeech.QUEUE_FLUSH, null, null)
-        }
-    }
-
-
     if (gameState.gameType == GameType.Audio || gameState.gameType == GameType.AudioVisual) {
         LaunchedEffect(gameState.currentAudio) {
             if (gameState.currentAudio?.isNotEmpty() == true) {
@@ -51,6 +44,12 @@ fun GameScreen(
                 tts.speak(gameState.currentAudio, TextToSpeech.QUEUE_FLUSH, null, null)
             }
         }
+    }
+
+    val matchColor = when (gameState.matchStatus) {
+        MatchStatus.Match -> Color.Green
+        MatchStatus.NoMatch -> Color.Red
+        else -> Color(0xFF0288D1)
     }
 
     Scaffold(
@@ -64,34 +63,21 @@ fun GameScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            LinearProgressIndicator(
-                progress = 0.5f,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .padding(vertical = 8.dp)
-            )
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Game",
-                style = MaterialTheme.typography.headlineLarge,
-                color = Color.White,
-                modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)
+                text = "Current Event: ${gameState.eventNumber + 1}/${gameState.totalEvents}",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.Black
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = "Score: $score",
                 style = MaterialTheme.typography.headlineLarge,
-                color = Color.Black,
-                modifier = Modifier.padding(bottom = 8.dp)
+                color = Color.Black
             )
-            if (gameState.gameType == GameType.Visual) {
-                Text(
-                    text = "Current Event: ${gameState.eventValue}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.Black
-                )
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -111,50 +97,67 @@ fun GameScreen(
                             .aspectRatio(1f)
                             .background(if (isActive) Color.Green else Color(0xFF81D4FA), shape = MaterialTheme.shapes.medium)
                             .clickable { /* Maybe for future */ },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = if (isActive) "X" else "")
-                    }
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+
 
             // Buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(Color(0xFF0288D1), shape = MaterialTheme.shapes.medium)
-                        .padding(16.dp)
-                        .clickable {
-                            vm.checkMatch()
-                            Log.d("GameScreen", "Sound button clicked")
-                        },
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "SOUND", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+
+                if (gameState.gameType == GameType.Audio || gameState.gameType == GameType.AudioVisual) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(matchColor, shape = MaterialTheme.shapes.medium)
+                            .padding(16.dp)
+                            .clickable {
+                                vm.checkMatchAudio()
+                                Log.d("GameScreen", "Sound button clicked")
+                            },
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = "SOUND", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(Color(0xFF0288D1), shape = MaterialTheme.shapes.medium)
-                        .padding(16.dp)
-                        .clickable {
-                            vm.checkMatch()
-                            Log.d("GameScreen", "Position button clicked")
+                if (gameState.gameType == GameType.Visual || gameState.gameType == GameType.AudioVisual) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(matchColor, shape = MaterialTheme.shapes.medium)
+                            .padding(16.dp)
+                            .clickable {
+                                vm.checkMatchVisual()
+                                Log.d("GameScreen", "Position button clicked")
+                            },
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = "POSITION", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                    }
 
-                        },
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "POSITION", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+
                 }
+            }
+            Spacer(modifier = Modifier.height(48.dp))
+
+            Button(
+                onClick = {
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                Text(text = "Return to Home")
             }
         }
     }

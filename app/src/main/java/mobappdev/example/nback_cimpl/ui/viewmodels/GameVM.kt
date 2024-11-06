@@ -43,7 +43,8 @@ interface GameViewModel {
     fun setGameType(gameType: GameType)
     fun startGame()
 
-    fun checkMatch()
+    fun checkMatchVisual()
+    fun checkMatchAudio()
 }
 
 class GameVM(
@@ -62,14 +63,14 @@ class GameVM(
         get() = _highscore
 
     // nBack is currently hardcoded
-    override val nBack: Int = 2
+    override val nBack: Int = 1
 
     private var job: Job? = null  // coroutine job for the game event
     private val eventInterval: Long = 2000L  // 2000 ms (2s)
 
     private val nBackHelper = NBackHelper()  // Helper that generate the event array
     private var events = emptyArray<Int>()  // Array with all events
-    private var audioEvents = emptyArray<Int>()
+    private var audioEvents = emptyArray<Int>()  // Array with all events
 
     override fun setGameType(gameType: GameType) {
         // update the gametype in the gamestate
@@ -79,78 +80,109 @@ class GameVM(
     override fun startGame() {
         job?.cancel()  // Cancel any existing game loop
 
-        _gameState.value = GameState(
-            gameType = _gameState.value.gameType,  // Behåller vald speltyp
-            eventValue = -1,  // Återställ eventvärde
-            currentAudio = null,  // Rensar eventuellt ljudstimuli
-            indexValue = 0  // Startar index på 0
-        )
+        _gameState.value = GameState(gameType = _gameState.value.gameType, eventValue = -1, currentAudio = null, indexValue = 0, eventNumber = 0)
 
         job = viewModelScope.launch {
             when (_gameState.value.gameType) {
                 GameType.Audio -> {
-                    events = nBackHelper.generateNBackString(10, 9, 0, nBack).toList().toTypedArray()
-                    Log.d("GameVM", "The following sequence was generated for AUDIO: ${events.contentToString()}")
-                    Log.d("GameVM", "Calling runAudioGame with events: ${events.contentToString()}")
-                    runAudioGame(events)
+                    audioEvents = nBackHelper.generateNBackString(10, 9, 30, nBack).toList().toTypedArray()
+                    Log.d("GameVM", "The following sequence was generated for AUDIO: ${audioEvents.contentToString()}")
+                    runAudioGame(audioEvents)
                 }
                 GameType.Visual -> {
-                    events = nBackHelper.generateNBackString(10, 9, 0, nBack).toList().toTypedArray()
+                    events = nBackHelper.generateNBackString(10, 9, 30, nBack).toList().toTypedArray()
                     Log.d("GameVM", "The following sequence was generated for VISUAL: ${events.contentToString()}")
                     runVisualGame(events)
                 }
                 GameType.AudioVisual -> {
-                    //events = nBackHelper.generateNBackString(10, 5, 15, nBack).toList().toTypedArray()
-                    //Log.d("GameVM", "The following sequence was generated: ${events.contentToString()}")
-
-                    //runAudioVisualGame(events)
+                    audioEvents = nBackHelper.generateNBackString(10, 9, 30, nBack).toList().toTypedArray()
+                    events = nBackHelper.generateNBackString(10, 9, 30, nBack).toList().toTypedArray()
+                    Log.d("GameVM", "Generated AUDIOVISUAL sequences: Audio - ${audioEvents.contentToString()}, Visual - ${events.contentToString()}")
+                    runAudioVisualGame(audioEvents, events)
                 }
+
             }
-            // Todo: update the highscore
+            if (_score.value > _highscore.value) {
+                _highscore.value = _score.value
+                userPreferencesRepository.saveHighScore(_score.value)
+                Log.d("GameVM", "New highscore saved: ${_score.value}")
+            }
+
         }
     }
 
-    override fun checkMatch() {
+    override fun checkMatchAudio() {
         /**
          * Todo: This function should check if there is a match when the user presses a match button
          * Make sure the user can only register a match once for each event.
          */
-        val currentIndex = _gameState.value.eventValue
-        if (currentIndex >= nBack && currentIndex < events.size) {
-            val isMatch = events[currentIndex] == events[currentIndex - nBack]
+        if (_gameState.value.matchChecked) return
 
-            if (isMatch) {
-                _score.value += 1
-                Log.d("GameVM", "Match found! Score updated: ${_score.value}")
+        val currentIndex = _gameState.value.audioEventValue
+        if (currentIndex != null) {
+            if (currentIndex >= nBack && currentIndex < audioEvents.size) {
+                val isMatch = audioEvents[currentIndex] == audioEvents[currentIndex - nBack]
+                _gameState.value = _gameState.value.copy(
+                    matchStatus = if (isMatch) MatchStatus.Match else MatchStatus.NoMatch,
+                    matchChecked = true
+                )
+
+                if (isMatch) _score.value += 1
             } else {
-                Log.d("GameVM", "No match found.")
+                _gameState.value = _gameState.value.copy(matchStatus = MatchStatus.None)
             }
         }
     }
-    private suspend fun runAudioGame(events: Array<Int>) {
-        // Todo: Make work for Basic grade
-        Log.d("GameVM", "runAudioGame started with events: ${events.contentToString()}")
+
+    override fun checkMatchVisual() {
+        /**
+         * Todo: This function should check if there is a match when the user presses a match button
+         * Make sure the user can only register a match once for each event.
+         */
+        if (_gameState.value.matchChecked) return
+
+        val currentIndex = _gameState.value.eventValue
+        if (currentIndex >= nBack && currentIndex < events.size) {
+            val isMatch = events[currentIndex] == events[currentIndex - nBack]
+            _gameState.value = _gameState.value.copy(
+                matchStatus = if (isMatch) MatchStatus.Match else MatchStatus.NoMatch,
+                matchChecked = true
+            )
+
+            if (isMatch) _score.value += 1
+        } else {
+            _gameState.value = _gameState.value.copy(matchStatus = MatchStatus.None)
+        }
+    }
+
+    private suspend fun runAudioGame(events: Array<Int>, ) {
         for (value in events) {
-            delay(eventInterval)
             val audioValue = (value - 1 + 'A'.code).toChar().toString()
-            Log.d("GameVM", "Setting currentAudio to: $audioValue")
-            _gameState.value = _gameState.value.copy(currentAudio = audioValue, eventValue = -1)
-            Log.d("GameVM", "Updated currentAudio to: $audioValue")
+            _gameState.value = _gameState.value.copy(currentAudio = audioValue, audioEventValue = value, eventNumber = _gameState.value.eventNumber + 1, matchStatus = MatchStatus.None, matchChecked = false)
+            delay(eventInterval)
         }
     }
 
     private suspend fun runVisualGame(events: Array<Int>){
-        // Todo: Replace this code for actual game code
         for (value in events) {
-            _gameState.value = _gameState.value.copy(eventValue = value)
+            _gameState.value = _gameState.value.copy(eventValue = value, eventNumber = _gameState.value.eventNumber + 1)
             delay(eventInterval)
         }
 
     }
 
-    private fun runAudioVisualGame(){
-        // Todo: Make work for Higher grade
+
+    private suspend fun runAudioVisualGame(audioEvents: Array<Int>, visualEvents: Array<Int>) {
+        delay(eventInterval)
+        for (i in 0 until minOf(audioEvents.size, visualEvents.size)) {
+            val audioValue = (audioEvents[i] - 1 + 'A'.code).toChar().toString()
+            val visualValue = visualEvents[i]
+
+            _gameState.value = _gameState.value.copy(currentAudio = audioValue, audioEventValue = audioEvents[i],  eventValue = visualValue,eventNumber = _gameState.value.eventNumber + 1,  matchStatus = MatchStatus.None, matchChecked = false)
+            delay(eventInterval)
+        }
     }
+
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -178,12 +210,26 @@ enum class GameType{
     AudioVisual
 }
 
+enum class MatchStatus {
+    Match,
+    NoMatch,
+    None
+}
+
 data class GameState(
     // You can use this state to push values from the VM to your UI.
     val gameType: GameType = GameType.Visual,  // Type of the game
-    val eventValue: Int = -1,  // The value of the array string
+    val eventValue: Int = -1, // The value of the array string
+    val audioEventValue: Int? = null,
     val currentAudio: String? = null,
-    val indexValue: Int = 0
+    val indexValue: Int = 0,
+    val matchStatus: MatchStatus = MatchStatus.None,
+    val matchChecked: Boolean = false,
+    val eventNumber: Int = 0,
+    val nBack: Int = 1,
+    val eventInterval: Long = 2000L,
+    val totalEvents: Int = 10
+
 )
 
 class FakeVM: GameViewModel{
@@ -202,6 +248,8 @@ class FakeVM: GameViewModel{
     override fun startGame() {
     }
 
-    override fun checkMatch() {
+    override fun checkMatchAudio() {
+    }
+    override fun checkMatchVisual() {
     }
 }

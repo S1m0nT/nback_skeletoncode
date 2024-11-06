@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -91,25 +93,27 @@ fun HomeScreen(
                     Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (gameState.eventValue != -1) {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = "Current eventValue is: ${gameState.eventValue}",
-                            textAlign = TextAlign.Center,
-                            color = Color.Black
 
-                        )
-                    }
-                    Button(onClick = {
-                        vm.startGame()
-                        navController.navigate("game")
-                    },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF0288D1)
-                        )
-                    ) {
-                        Text(text = "Play Game")
-                    }
+                    Text(
+                        text = "Game Type: ${gameState.gameType}",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.Black
+                    )
+                    Text(
+                        text = "N-Back Level: ${gameState.nBack}",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.Black
+                    )
+                    Text(
+                        text = "Event Interval: ${gameState.eventInterval} ms",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.Black
+                    )
+                    Text(
+                        text = "Total Events in Round: ${gameState.totalEvents}",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.Black
+                    )
                 }
             }
             Text(
@@ -159,6 +163,37 @@ fun HomeScreen(
                             .aspectRatio(3f / 2f)
                     )
                 }
+
+                Button(
+                    onClick = {
+                        vm.setGameType(GameType.AudioVisual)
+                        vm.startGame()
+                        navController.navigate("game")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD32F2F)
+                    ),
+                    modifier = Modifier
+                        .height(48.dp)
+                        .width(96.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.sound_on),
+                            contentDescription = "Audio",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Icon(
+                            painter = painterResource(id = R.drawable.visual),
+                            contentDescription = "Visual",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
             }
 
         }
