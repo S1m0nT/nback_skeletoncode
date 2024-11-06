@@ -69,6 +69,7 @@ class GameVM(
 
     private val nBackHelper = NBackHelper()  // Helper that generate the event array
     private var events = emptyArray<Int>()  // Array with all events
+    private var audioEvents = emptyArray<Int>()
 
     override fun setGameType(gameType: GameType) {
         // update the gametype in the gamestate
@@ -78,15 +79,32 @@ class GameVM(
     override fun startGame() {
         job?.cancel()  // Cancel any existing game loop
 
-        // Get the events from our C-model (returns IntArray, so we need to convert to Array<Int>)
-        events = nBackHelper.generateNBackString(10, 9, 30, nBack).toList().toTypedArray()  // Todo Higher Grade: currently the size etc. are hardcoded, make these based on user input
-        Log.d("GameVM", "The following sequence was generated: ${events.contentToString()}")
+        _gameState.value = GameState(
+            gameType = _gameState.value.gameType,  // Behåller vald speltyp
+            eventValue = -1,  // Återställ eventvärde
+            currentAudio = null,  // Rensar eventuellt ljudstimuli
+            indexValue = 0  // Startar index på 0
+        )
 
         job = viewModelScope.launch {
-            when (gameState.value.gameType) {
-                GameType.Audio -> runAudioGame()
-                GameType.AudioVisual -> runAudioVisualGame()
-                GameType.Visual -> runVisualGame(events)
+            when (_gameState.value.gameType) {
+                GameType.Audio -> {
+                    events = nBackHelper.generateNBackString(10, 9, 0, nBack).toList().toTypedArray()
+                    Log.d("GameVM", "The following sequence was generated for AUDIO: ${events.contentToString()}")
+                    Log.d("GameVM", "Calling runAudioGame with events: ${events.contentToString()}")
+                    runAudioGame(events)
+                }
+                GameType.Visual -> {
+                    events = nBackHelper.generateNBackString(10, 9, 0, nBack).toList().toTypedArray()
+                    Log.d("GameVM", "The following sequence was generated for VISUAL: ${events.contentToString()}")
+                    runVisualGame(events)
+                }
+                GameType.AudioVisual -> {
+                    //events = nBackHelper.generateNBackString(10, 5, 15, nBack).toList().toTypedArray()
+                    //Log.d("GameVM", "The following sequence was generated: ${events.contentToString()}")
+
+                    //runAudioVisualGame(events)
+                }
             }
             // Todo: update the highscore
         }
@@ -109,8 +127,16 @@ class GameVM(
             }
         }
     }
-    private fun runAudioGame() {
+    private suspend fun runAudioGame(events: Array<Int>) {
         // Todo: Make work for Basic grade
+        Log.d("GameVM", "runAudioGame started with events: ${events.contentToString()}")
+        for (value in events) {
+            delay(eventInterval)
+            val audioValue = (value - 1 + 'A'.code).toChar().toString()
+            Log.d("GameVM", "Setting currentAudio to: $audioValue")
+            _gameState.value = _gameState.value.copy(currentAudio = audioValue, eventValue = -1)
+            Log.d("GameVM", "Updated currentAudio to: $audioValue")
+        }
     }
 
     private suspend fun runVisualGame(events: Array<Int>){
@@ -156,6 +182,7 @@ data class GameState(
     // You can use this state to push values from the VM to your UI.
     val gameType: GameType = GameType.Visual,  // Type of the game
     val eventValue: Int = -1,  // The value of the array string
+    val currentAudio: String? = null,
     val indexValue: Int = 0
 )
 

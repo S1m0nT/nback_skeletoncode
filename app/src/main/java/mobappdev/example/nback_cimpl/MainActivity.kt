@@ -1,6 +1,8 @@
 package mobappdev.example.nback_cimpl
 
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +18,7 @@ import mobappdev.example.nback_cimpl.ui.screens.GameScreen
 import mobappdev.example.nback_cimpl.ui.screens.HomeScreen
 import mobappdev.example.nback_cimpl.ui.theme.NBack_CImplTheme
 import mobappdev.example.nback_cimpl.ui.viewmodels.GameVM
+import java.util.Locale
 
 /**
  * This is the MainActivity of the application
@@ -30,40 +33,25 @@ import mobappdev.example.nback_cimpl.ui.viewmodels.GameVM
  *
  */
 
-
 class MainActivity : ComponentActivity() {
+    private lateinit var tts: TextToSpeech
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            NBack_CImplTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    // Instantiate the viewmodel
-                    val gameViewModel: GameVM = viewModel(
-                        factory = GameVM.Factory
-                    )
 
-                    // Instantiate the homescreen
-                    MyApp(gameViewModel)
-                }
+        tts = TextToSpeech(this) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts.language = Locale.US
+            } else {
+                Log.e("MainActivity", "Initialization of TTS failed")
             }
         }
-    }
-}
 
-@Composable
-fun MyApp(vm: GameVM) {
-    val navController = rememberNavController()
-
-    NavHost(navController = navController, startDestination = "home") {
-        composable("home") {
-            HomeScreen(vm = vm, navController = navController)
-        }
-        composable("game") {
-            GameScreen(vm = vm)
+        setContent {
+            NBack_CImplTheme {
+                val gameViewModel: GameVM = viewModel(factory = GameVM.Factory)
+                Navigation(gameViewModel, tts)
+            }
         }
     }
 }

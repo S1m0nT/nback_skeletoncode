@@ -37,6 +37,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import mobappdev.example.nback_cimpl.R
 import mobappdev.example.nback_cimpl.ui.viewmodels.FakeVM
+import mobappdev.example.nback_cimpl.ui.viewmodels.GameType
 import mobappdev.example.nback_cimpl.ui.viewmodels.GameViewModel
 
 /**
@@ -125,13 +126,11 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Audio
                 Button(onClick = {
-                    // Todo: change this button behaviour
-                    scope.launch {
-                        snackBarHostState.showSnackbar(
-                            message = "Hey! you clicked the audio button"
-                        )
-                    }
+                    vm.setGameType(GameType.Audio)
+                    vm.startGame()
+                    navController.navigate("game")
                 }) {
                     Icon(
                         painter = painterResource(id = R.drawable.sound_on),
@@ -141,20 +140,17 @@ fun HomeScreen(
                             .aspectRatio(3f / 2f)
                     )
                 }
+
                 Button(
                     onClick = {
-                        // Todo: change this button behaviour
-                        scope.launch {
-                            snackBarHostState.showSnackbar(
-                                message = "Hey! you clicked the visual button",
-                                duration = SnackbarDuration.Short
-                            )
-                        }
+                        vm.setGameType(GameType.Visual)
+                        vm.startGame()
+                        navController.navigate("game")
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF0288D1)
                     )
-                    ) {
+                ) {
                     Icon(
                         painter = painterResource(id = R.drawable.visual),
                         contentDescription = "Visual",
@@ -164,6 +160,7 @@ fun HomeScreen(
                     )
                 }
             }
+
         }
     }
 }
