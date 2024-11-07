@@ -21,7 +21,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.launch
 import mobappdev.example.nback_cimpl.ui.viewmodels.FakeVM
 import mobappdev.example.nback_cimpl.ui.viewmodels.GameType
 import mobappdev.example.nback_cimpl.ui.viewmodels.GameViewModel
@@ -31,7 +30,7 @@ import mobappdev.example.nback_cimpl.ui.viewmodels.MatchStatus
 fun GameScreen(
     vm: GameViewModel,
     navController: NavController,
-    tts : TextToSpeech,
+    tts: TextToSpeech,
 ) {
     val gameState by vm.gameState.collectAsState()
     val score by vm.score.collectAsState()
@@ -66,7 +65,7 @@ fun GameScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Current Event: ${gameState.eventNumber + 1}/${gameState.totalEvents}",
+                text = "Current Event: ${gameState.eventNumber }/${gameState.totalEvents}",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.Black
             )
@@ -81,29 +80,8 @@ fun GameScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // The 3x3 Grid
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                contentPadding = PaddingValues(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-            ) {
-                items(9) { index ->
-                    val isActive = index == gameState.eventValue
-                    Box(
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .aspectRatio(1f)
-                            .background(if (isActive) Color.Green else Color(0xFF81D4FA), shape = MaterialTheme.shapes.medium)
-                            .clickable { /* Maybe for future */ },
-                    )
-                }
-            }
+            VisualGrid(gridSize = gameState.gridSize, eventValue = gameState.eventValue)
 
-
-
-            // Buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -141,8 +119,6 @@ fun GameScreen(
                     ) {
                         Text(text = "POSITION", color = Color.White, style = MaterialTheme.typography.bodyMedium)
                     }
-
-
                 }
             }
             Spacer(modifier = Modifier.height(48.dp))
@@ -163,6 +139,33 @@ fun GameScreen(
     }
 }
 
+@Composable
+fun VisualGrid(gridSize: Int, eventValue: Int) {
+    val gridItemCount = gridSize * gridSize
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(gridSize),
+        contentPadding = PaddingValues(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+    ) {
+        items(gridItemCount) { index ->
+            val isActive = index == eventValue
+            Box(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .aspectRatio(1f)
+                    .background(
+                        color = if (isActive) Color.Green else Color(0xFF81D4FA),
+                        shape = MaterialTheme.shapes.medium
+                    )
+                    .clickable { }
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 fun GameScreenPreview() {
@@ -176,4 +179,3 @@ fun GameScreenPreview() {
         tts = tts
     )
 }
-

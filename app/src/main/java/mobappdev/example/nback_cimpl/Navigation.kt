@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import mobappdev.example.nback_cimpl.ui.screens.GameScreen
 import mobappdev.example.nback_cimpl.ui.screens.HomeScreen
+import mobappdev.example.nback_cimpl.ui.screens.SettingsScreen
 import mobappdev.example.nback_cimpl.ui.viewmodels.GameVM
 
 @Composable
@@ -23,6 +24,9 @@ fun Navigation(vm: GameVM, tts: TextToSpeech) {
                 navController = navController,
                 tts = tts
             )
+        }
+        composable("settings"){
+            SettingsScreen(vm = vm,navController = navController)
         }
     }
 }

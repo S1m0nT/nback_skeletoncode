@@ -114,15 +114,21 @@ fun HomeScreen(
                         style = MaterialTheme.typography.headlineSmall,
                         color = Color.Black
                     )
+                    // Settings Button
+                    Button(
+                        onClick = {
+                            navController.navigate("settings")
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF4CAF50)
+                        ),
+                        modifier = Modifier
+                            .padding(16.dp)
+                    ) {
+                        Text(text = "Settings", color = Color.White, style = MaterialTheme.typography.bodyLarge)
+                    }
                 }
             }
-            Text(
-                modifier = Modifier.padding(16.dp),
-                text = "Start Game".uppercase(),
-                style = MaterialTheme.typography.displaySmall,
-                color = Color.Black
-
-            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
