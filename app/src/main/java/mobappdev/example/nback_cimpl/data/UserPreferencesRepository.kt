@@ -12,30 +12,16 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
-/**
- * This repository provides a way to interact with the DataStore api,
- * with this API you can save key:value pairs
- *
- * Currently this file contains only one thing: getting the highscore as a flow
- * and writing to the highscore preference.
- * (a flow is like a waterpipe; if you put something different in the start,
- * the end automatically updates as long as the pipe is open)
- *
- * Date: 25-08-2023
- * Version: Skeleton code version 1.0
- * Author: Yeetivity
- *
- */
-
-class UserPreferencesRepository (
+class UserPreferencesRepository(
     private val dataStore: DataStore<Preferences>
-){
+) {
     private companion object {
         val HIGHSCORE = intPreferencesKey("highscore")
         val N_BACK_LEVEL = intPreferencesKey("n_back_level")
         val EVENT_INTERVAL = longPreferencesKey("event_interval")
         val TOTAL_EVENTS = intPreferencesKey("total_events")
         val GRID_SIZE = intPreferencesKey("grid_size")
+        val AUDIO_NUMBERS = intPreferencesKey("audio_numbers")
         const val TAG = "UserPreferencesRepo"
     }
 
@@ -72,18 +58,24 @@ class UserPreferencesRepository (
             preferences[GRID_SIZE] ?: 3
         }
 
+    val audioNumbersFlow: Flow<Int> = dataStore.data
+        .map { preferences ->
+            preferences[AUDIO_NUMBERS] ?: 2
+        }
+
     suspend fun saveHighScore(score: Int) {
         dataStore.edit { preferences ->
             preferences[HIGHSCORE] = score
         }
     }
 
-    suspend fun saveSettings(nBackLevel: Int, eventInterval: Long, totalEvents: Int, gridSize: Int) {
+    suspend fun saveSettings(nBackLevel: Int, eventInterval: Long, totalEvents: Int, gridSize: Int, audioNumbers: Int) {
         dataStore.edit { preferences ->
             preferences[N_BACK_LEVEL] = nBackLevel
             preferences[EVENT_INTERVAL] = eventInterval
             preferences[TOTAL_EVENTS] = totalEvents
             preferences[GRID_SIZE] = gridSize
+            preferences[AUDIO_NUMBERS] = audioNumbers
         }
     }
 }

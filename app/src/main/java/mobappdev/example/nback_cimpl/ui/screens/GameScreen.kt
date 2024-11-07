@@ -36,14 +36,19 @@ fun GameScreen(
     val score by vm.score.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
 
-    if (gameState.gameType == GameType.Audio || gameState.gameType == GameType.AudioVisual) {
-        LaunchedEffect(gameState.currentAudio) {
-            if (gameState.currentAudio?.isNotEmpty() == true) {
-                Log.d("GameScreen", "Speaking: ${gameState.currentAudio}")
-                tts.speak(gameState.currentAudio, TextToSpeech.QUEUE_FLUSH, null, null)
+    LaunchedEffect(gameState.currentAudio) {
+        if (gameState.currentAudio?.isNotEmpty() == true) {
+            Log.d("GameScreen", "Speaking: ${gameState.currentAudio}")
+
+            val speakResult = tts.speak(gameState.currentAudio, TextToSpeech.QUEUE_FLUSH, null, null)
+            if (speakResult == TextToSpeech.ERROR) {
+                Log.e("GameScreen", "Failed to speak: ${gameState.currentAudio}")
             }
+        } else {
+            Log.e("GameScreen", "No audio text to speak or TTS not ready.")
         }
     }
+
 
     val matchColor = when (gameState.matchStatus) {
         MatchStatus.Match -> Color.Green

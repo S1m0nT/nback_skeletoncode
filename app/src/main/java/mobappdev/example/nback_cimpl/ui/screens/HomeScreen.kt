@@ -114,6 +114,11 @@ fun HomeScreen(
                         style = MaterialTheme.typography.headlineSmall,
                         color = Color.Black
                     )
+                    Text(
+                        text = "Audio Letters: ${gameState.audioNumbers}",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.Black
+                    )
                     // Settings Button
                     Button(
                         onClick = {

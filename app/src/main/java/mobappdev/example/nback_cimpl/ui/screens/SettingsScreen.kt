@@ -4,6 +4,9 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,10 +20,12 @@ import mobappdev.example.nback_cimpl.ui.viewmodels.GameViewModel
 @Composable
 fun SettingsScreen(vm: GameViewModel, navController: NavController) {
     val gameState by vm.gameState.collectAsState()
-    val eventInterval = remember { mutableStateOf(gameState.eventInterval.toString()) }
-    val totalEvents = remember { mutableStateOf(gameState.totalEvents.toString()) }
-    val nBackLevel = remember { mutableStateOf(gameState.nBack.toString()) }
-    val gridSize = remember { mutableStateOf(3) }
+    val nBackLevel = remember { mutableStateOf(gameState.nBack) }
+    val eventInterval = remember { mutableStateOf(gameState.eventInterval) }
+    val totalEvents = remember { mutableStateOf(gameState.totalEvents) }
+    val gridSizeOptions = listOf(3, 4, 5)
+    var gridSizeIndex by remember { mutableStateOf(gridSizeOptions.indexOf(gameState.gridSize)) }
+    val audioNumbers = remember { mutableStateOf(gameState.audioNumbers) }
 
     Scaffold(
         topBar = {
@@ -46,64 +51,119 @@ fun SettingsScreen(vm: GameViewModel, navController: NavController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                OutlinedTextField(
-                    value = nBackLevel.value,
-                    onValueChange = { nBackLevel.value = it },
-                    label = { Text("N-Back Level") },
-                    isError = nBackLevel.value.toIntOrNull() == null
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = eventInterval.value,
-                    onValueChange = { eventInterval.value = it },
-                    label = { Text("Event Interval (ms)") },
-                    isError = eventInterval.value.toLongOrNull() == null
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = totalEvents.value,
-                    onValueChange = { totalEvents.value = it },
-                    label = { Text("Total Events in Round") },
-                    isError = totalEvents.value.toIntOrNull() == null
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Grid Size Selection
-                Text("Select Grid Size", style = MaterialTheme.typography.headlineSmall)
+                Text("N-Back Level", style = MaterialTheme.typography.headlineSmall)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.padding(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(vertical = 8.dp)
                 ) {
-                    // 3x3 Option
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { gridSize.value = 3 }
-                    ) {
-                        RadioButton(
-                            selected = gridSize.value == 3,
-                            onClick = { gridSize.value = 3 }
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = "3x3")
+                    IconButton(onClick = {
+                        if (nBackLevel.value > 1) nBackLevel.value -= 1
+                    }) {
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Decrease N-Back Level")
                     }
 
-                    // 5x5 Option
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { gridSize.value = 5 }
-                    ) {
-                        RadioButton(
-                            selected = gridSize.value == 5,
-                            onClick = { gridSize.value = 5 }
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = "5x5")
+                    Text(text = nBackLevel.value.toString(), style = MaterialTheme.typography.bodyLarge)
+
+                    IconButton(onClick = {
+                        nBackLevel.value += 1
+                    }) {
+                        Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Increase N-Back Level")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text("Event Interval (ms)", style = MaterialTheme.typography.headlineSmall)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    IconButton(onClick = {
+                        if (eventInterval.value > 500) eventInterval.value -= 100
+                    }) {
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Decrease Event Interval")
+                    }
+
+                    Text(text = eventInterval.value.toString(), style = MaterialTheme.typography.bodyLarge)
+
+                    IconButton(onClick = {
+                        eventInterval.value += 100
+                    }) {
+                        Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Increase Event Interval")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text("Total Events in Round", style = MaterialTheme.typography.headlineSmall)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    IconButton(onClick = {
+                        if (totalEvents.value > 1) totalEvents.value -= 1
+                    }) {
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Decrease Total Events")
+                    }
+
+                    Text(text = totalEvents.value.toString(), style = MaterialTheme.typography.bodyLarge)
+
+                    IconButton(onClick = {
+                        totalEvents.value += 1
+                    }) {
+                        Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Increase Total Events")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text("Number of Audio Letters", style = MaterialTheme.typography.headlineSmall)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    IconButton(onClick = {
+                        if (audioNumbers.value > 3) audioNumbers.value -= 1
+                    }) {
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Decrease Audio Letters")
+                    }
+
+                    Text(text = audioNumbers.value.toString(), style = MaterialTheme.typography.bodyLarge)
+
+                    IconButton(onClick = {
+                        if (audioNumbers.value < 26) audioNumbers.value += 1
+                    }) {
+                        Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Increase Audio Letters")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text("Grid Size", style = MaterialTheme.typography.headlineSmall)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    IconButton(onClick = {
+                        if (gridSizeIndex > 0) gridSizeIndex -= 1
+                    }) {
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Decrease Grid Size")
+                    }
+
+                    Text(
+                        text = "${gridSizeOptions[gridSizeIndex]}x${gridSizeOptions[gridSizeIndex]}",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+
+                    IconButton(onClick = {
+                        if (gridSizeIndex < gridSizeOptions.size - 1) gridSizeIndex += 1
+                    }) {
+                        Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Increase Grid Size")
                     }
                 }
 
@@ -111,24 +171,15 @@ fun SettingsScreen(vm: GameViewModel, navController: NavController) {
 
                 Button(
                     onClick = {
-                        if (nBackLevel.value.toIntOrNull() != null &&
-                            eventInterval.value.toLongOrNull() != null &&
-                            totalEvents.value.toIntOrNull() != null
-                        ) {
-                            vm.updateSettings(
-                                nBack = nBackLevel.value.toInt(),
-                                eventInterval = eventInterval.value.toLong(),
-                                totalEvents = totalEvents.value.toInt(),
-                                gridSize = gridSize.value
-                            )
-                            navController.popBackStack()
-                        } else {
-                            Log.d("SettingsScreen", "Invalid input values")
-                        }
-                    },
-                    enabled = nBackLevel.value.toIntOrNull() != null &&
-                            eventInterval.value.toLongOrNull() != null &&
-                            totalEvents.value.toIntOrNull() != null
+                        vm.updateSettings(
+                            nBack = nBackLevel.value,
+                            eventInterval = eventInterval.value,
+                            totalEvents = totalEvents.value,
+                            gridSize = gridSizeOptions[gridSizeIndex],
+                            audioNumbers = audioNumbers.value
+                        )
+                        navController.popBackStack()
+                    }
                 ) {
                     Text("Save Settings")
                 }
