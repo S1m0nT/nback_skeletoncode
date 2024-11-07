@@ -38,14 +38,7 @@ fun GameScreen(
 
     LaunchedEffect(gameState.currentAudio) {
         if (gameState.currentAudio?.isNotEmpty() == true) {
-            Log.d("GameScreen", "Speaking: ${gameState.currentAudio}")
-
-            val speakResult = tts.speak(gameState.currentAudio, TextToSpeech.QUEUE_FLUSH, null, null)
-            if (speakResult == TextToSpeech.ERROR) {
-                Log.e("GameScreen", "Failed to speak: ${gameState.currentAudio}")
-            }
-        } else {
-            Log.e("GameScreen", "No audio text to speak or TTS not ready.")
+            tts.speak(gameState.currentAudio, TextToSpeech.QUEUE_FLUSH, null, null)
         }
     }
 
@@ -100,7 +93,6 @@ fun GameScreen(
                             .padding(16.dp)
                             .clickable {
                                 vm.checkMatchAudio()
-                                Log.d("GameScreen", "Sound button clicked")
                             },
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -118,7 +110,6 @@ fun GameScreen(
                             .padding(16.dp)
                             .clickable {
                                 vm.checkMatchVisual()
-                                Log.d("GameScreen", "Position button clicked")
                             },
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {

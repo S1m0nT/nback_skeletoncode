@@ -80,24 +80,22 @@ class GameVM(
         job?.cancel()  // Cancel any existing game loop
 
         _gameState.value = GameState(gameType = _gameState.value.gameType, eventValue = -1, currentAudio = null,
-            indexValue = 0, eventNumber = 0, nBack = _gameState.value.nBack, eventInterval = _gameState.value.eventInterval,
+            eventNumber = 0, nBack = _gameState.value.nBack, eventInterval = _gameState.value.eventInterval,
             totalEvents = _gameState.value.totalEvents, gridSize = _gameState.value.gridSize, audioNumbers =  _gameState.value.audioNumbers)
 
         job = viewModelScope.launch {
             when (_gameState.value.gameType) {
                 GameType.Audio -> {
                     audioEvents = nBackHelper.generateNBackString(_gameState.value.totalEvents, _gameState.value.audioNumbers, 30,  _gameState.value.nBack).toList().toTypedArray()
-                    Log.d("GameVM", "The following sequence was generated for AUDIO: ${audioEvents.contentToString()}")
                     runAudioGame(audioEvents)
                 }
                 GameType.Visual -> {
                     events = nBackHelper.generateNBackString(_gameState.value.totalEvents, _gameState.value.gridSize * _gameState.value.gridSize, 30,  _gameState.value.nBack).toList().toTypedArray()
-                    Log.d("GameVM", "The following sequence was generated for VISUAL: ${events.contentToString()}")
                     runVisualGame(events)
                 }
                 GameType.AudioVisual -> {
                     audioEvents = nBackHelper.generateNBackString(_gameState.value.totalEvents, _gameState.value.audioNumbers, 30,  _gameState.value.nBack).toList().toTypedArray()
-                    delay(300)
+                    delay(300) // Needed to make sure that the arrays have different seeds
                     events = nBackHelper.generateNBackString(_gameState.value.totalEvents, _gameState.value.gridSize * _gameState.value.gridSize, 30,  _gameState.value.nBack).toList().toTypedArray()
                     Log.d("GameVM", "Generated AUDIOVISUAL sequences: Audio - ${audioEvents.contentToString()}, Visual - ${events.contentToString()}")
                     runAudioVisualGame(audioEvents, events)
@@ -107,7 +105,6 @@ class GameVM(
             if (_score.value > _highscore.value) {
                 _highscore.value = _score.value
                 userPreferencesRepository.saveHighScore(_score.value)
-                Log.d("GameVM", "New highscore saved: ${_score.value}")
             }
 
         }
@@ -128,7 +125,6 @@ class GameVM(
 
             if (isMatch) _score.value += 1
         } else {
-            Log.d("checkMatchAudio", "Current index is less than nBack or out of bounds.")
             _gameState.value = _gameState.value.copy(matchStatus = MatchStatus.None)
         }
     }
@@ -149,17 +145,12 @@ class GameVM(
 
             if (isMatch) {
                 _score.value += 1
-                Log.d("checkMatchVisual", "Match found! Score incremented to ${_score.value}")
-            } else {
-                Log.d("checkMatchVisual", "No match found.")
             }
         }
     }
 
     private suspend fun runAudioGame(events: Array<Int>) {
         val maxAudioRange = _gameState.value.audioNumbers
-        Log.d("runAudioGame", "Current maxAudioRange (audioNumbers): $maxAudioRange")
-
         for (value in events) {
             val adjustedValue = ((value - 1) % maxAudioRange) + 1
             val audioValue = (adjustedValue - 1 + 'A'.code).toChar().toString()
@@ -167,7 +158,8 @@ class GameVM(
 
             // Delay briefly to ensure Compose registers the reset
             delay(50)
-            _gameState.value = _gameState.value.copy(currentAudio = audioValue, audioEventValue = adjustedValue, eventNumber = _gameState.value.eventNumber + 1, matchStatus = MatchStatus.None, matchChecked = false)
+            _gameState.value = _gameState.value.copy(currentAudio = audioValue, audioEventValue = adjustedValue,
+                eventNumber = _gameState.value.eventNumber + 1, matchStatus = MatchStatus.None, matchChecked = false)
             delay(_gameState.value.eventInterval)
         }
     }
@@ -176,13 +168,7 @@ class GameVM(
 
     private suspend fun runVisualGame(events: Array<Int>) {
         for ((index, value) in events.withIndex()) {
-            _gameState.value = _gameState.value.copy(
-                eventValue = value - 1,
-                eventNumber = index + 1,
-                matchStatus = MatchStatus.None,
-                matchChecked = false
-            )
-            Log.d("runVisualGame", "Event Number: ${_gameState.value.eventNumber}, Event Value: $value")
+            _gameState.value = _gameState.value.copy(eventValue = value - 1, eventNumber = index + 1, matchStatus = MatchStatus.None, matchChecked = false)
             delay(_gameState.value.eventInterval)
         }
     }
@@ -194,11 +180,13 @@ class GameVM(
             val audioValue = (audioEvents[i] - 1 + 'A'.code).toChar().toString()
             val visualValue = visualEvents[i]
 
+            _gameState.value = _gameState.value.copy(currentAudio = "")
+            // Delay briefly to ensure Compose registers the reset
+            delay(50)
+
             _gameState.value = _gameState.value.copy(currentAudio = audioValue, audioEventValue = audioEvents[i],
                 eventValue = visualValue - 1, eventNumber = _gameState.value.eventNumber + 1,
                 matchStatus = MatchStatus.None, matchChecked = false)
-            Log.d("runAudioVisualGame", "Playing audio: $audioValue, visual: $visualValue")
-
             delay(_gameState.value.eventInterval)
         }
     }
@@ -287,7 +275,6 @@ data class GameState(
     val eventValue: Int = -1, // The value of the array string
     val audioEventValue: Int? = null,
     val currentAudio: String? = null,
-    val indexValue: Int = 0,
     val matchStatus: MatchStatus = MatchStatus.None,
     val matchChecked: Boolean = false,
     val eventNumber: Int = 0,

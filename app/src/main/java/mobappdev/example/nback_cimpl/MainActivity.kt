@@ -42,8 +42,6 @@ class MainActivity : ComponentActivity() {
         tts = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 tts.language = Locale.US
-            } else {
-                Log.e("MainActivity", "Initialization of TTS failed")
             }
         }
 

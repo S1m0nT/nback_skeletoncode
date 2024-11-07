@@ -171,13 +171,8 @@ fun SettingsScreen(vm: GameViewModel, navController: NavController) {
 
                 Button(
                     onClick = {
-                        vm.updateSettings(
-                            nBack = nBackLevel.value,
-                            eventInterval = eventInterval.value,
-                            totalEvents = totalEvents.value,
-                            gridSize = gridSizeOptions[gridSizeIndex],
-                            audioNumbers = audioNumbers.value
-                        )
+                        vm.updateSettings(nBack = nBackLevel.value, eventInterval = eventInterval.value, totalEvents = totalEvents.value,
+                            gridSize = gridSizeOptions[gridSizeIndex], audioNumbers = audioNumbers.value)
                         navController.popBackStack()
                     }
                 ) {

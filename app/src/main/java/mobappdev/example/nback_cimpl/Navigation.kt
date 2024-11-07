@@ -19,11 +19,7 @@ fun Navigation(vm: GameVM, tts: TextToSpeech) {
             HomeScreen(vm = vm, navController = navController)
         }
         composable("game") {
-            GameScreen(
-                vm = vm,
-                navController = navController,
-                tts = tts
-            )
+            GameScreen(vm = vm, navController = navController, tts = tts)
         }
         composable("settings"){
             SettingsScreen(vm = vm,navController = navController)

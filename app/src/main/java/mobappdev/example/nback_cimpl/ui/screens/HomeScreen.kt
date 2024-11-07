@@ -63,7 +63,6 @@ fun HomeScreen(
     val highscore by vm.highscore.collectAsState()  // Highscore is its own StateFlow
     val gameState by vm.gameState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) }
@@ -119,7 +118,6 @@ fun HomeScreen(
                         style = MaterialTheme.typography.headlineSmall,
                         color = Color.Black
                     )
-                    // Settings Button
                     Button(
                         onClick = {
                             navController.navigate("settings")
